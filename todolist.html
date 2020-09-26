@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="jqurey.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #fff;
+        }
+        .header {
+            width: 100%;
+            height: 100px;
+            background-color: skyblue;
+        }
+        .nav {
+            width: 600px;
+            height: 100%;
+            margin: 0 auto;
+            line-height: 100px;
+        }
+        .nav a {
+            font-size: 30px;
+            color: #fff;
+            text-decoration: none;
+        }
+        .nav .init {
+            width: 300px;
+            height: 40px;
+            padding: 0;
+            border: 0;
+            float: right;
+            margin: 30px 0;
+        }
+        .todo,.done {
+            width: 600px;
+            margin: 20px auto 20px;
+        }
+        h2 {
+            font-size: 30px;
+            margin: 0;
+            position: relative;
+        }
+        span {
+            position: absolute;
+            left: 580px;
+            width: 30px;
+            height: 30px;
+            border-radius: 15px;
+            border: 1px solid #333;
+            text-align: center;
+            line-height: 30px;
+            margin: 4px 0;
+            font-size: 15px;
+        }
+        ul {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+        ul li {
+            list-style: none;
+            width: 100%;
+            height: 40px;
+            line-height: 40px;
+            background-color: hotpink;
+            margin-top: 10px;
+            /* border-bottom: 1px solid #333; */
+        }
+        ul li p {
+            display: inline;
+            font-size: 24px;
+            margin-left: 40px;
+        }
+        ul li a {
+            text-decoration: none;
+            float: right;
+            color:#fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="nav">
+            <a href="javascript:;">备忘录</a>
+            <input type="text" class="init">
+        </div>
+    </div>
+    <div class="todo">
+        <h2>我想要做<span class="count1">0</span></h2>
+        <ul class="todoul">
+        </ul>
+    </div>
+    <div class="done">
+        <h2>我已经做了<span class="count2">0</span></h2>
+        <ul class="doneul">
+           
+        </ul>
+    </div>
+    <script>
+
+        $(function(){
+            load();
+            count();
+            $(".init").on("keydown", function(e) {
+                //判断按下回车
+                if(e.keyCode == 13 && $(this).val() != "") {
+                    //取得数据库的数据
+                    var local = getData();
+                    // console.log(local);
+                    //更新local的数据
+                    local.push({titel:$(this).val(), done: false})
+                    //上传数据库
+                    saveData(local)
+                    //加载数据库显示到页面
+                    load();
+                    $(this).val("");   
+                    count();              
+                }
+               
+            })
+            //删除模块
+            $(".todoul,.doneul").on("click", "a" ,function() {
+                var data = getData();
+                // console.log(data);
+                //attr获得自定义属性,splice删除数组中的元素
+                data.splice($(this).attr("id"),1);
+                saveData(data);
+                load();
+                // $(this).parent("li").remove();
+                count();
+            })
+            //选择状态
+            $(".todoul, .doneul").on("click","input", function() {
+                // console.log($(this).prop("checked"));
+                var data = getData();
+                // console.log($(this).siblings("a").attr("id"));
+                //更新数据中的done
+                data[$(this).siblings("a").attr("id")].done = $(this).prop("checked");
+                // console.log(data);
+                saveData(data);
+                load();
+                count();
+            })
+            //读取本地存储的数据
+            function getData() {
+                var data = localStorage.getItem("todo");
+                if (data != null) {
+                    return JSON.parse(data);
+                } else {
+                    return [];
+                }
+            }
+            //保存上传新数据
+            function saveData(data) {
+                localStorage.setItem("todo", JSON.stringify(data));
+            }
+            //添加li
+            function load () {
+                var data = getData();
+                $(".todoul,.doneul").empty();
+                $.each(data,function(i,e) {
+                    if (e.done){
+                        $(".doneul").prepend("<li><input type='checkbox' checked='checked'> <p>"+ e.titel +"</p> <a href='javascript:;' id = "+ i +">删除</a></li>");
+                    } else {
+                        $(".todoul").prepend("<li><input type='checkbox'> <p>"+ e.titel +"</p> <a href='javascript:;' id = "+ i +">删除</a></li>");
+                    }
+                    
+                })
+            }
+            function count(){
+                $(".count1").text($(".todoul li").length);
+                $(".count2").text($(".doneul li").length);
+            }
+        })
+    </script>
+</body>
+</html>
